@@ -93,12 +93,12 @@ void OpenGLPipelineService::bindCameraUboForProgram(GLuint shaderProgramId) {
 
 void OpenGLPipelineService::bindTransformDataUboForProgram(GLuint shaderProgramId) {
     GLuint uboIndex = glGetUniformBlockIndex(shaderProgramId, "TransformBufferObject");
-    glUniformBlockBinding(shaderProgramId, uboIndex, 2);
+    glUniformBlockBinding(shaderProgramId, uboIndex, 1);
 }
 
 void OpenGLPipelineService::bindLightPosDataUboForProgram(GLuint shaderProgramId) {
     GLuint uboIndex = glGetUniformBlockIndex(shaderProgramId, "lightPosData");
-    glUniformBlockBinding(shaderProgramId, uboIndex, 3);
+    glUniformBlockBinding(shaderProgramId, uboIndex, 2);
 }
 
 GLuint OpenGLPipelineService::getCameraUboHandle() {
@@ -297,12 +297,17 @@ void OpenGLPipelineService::initOpenGLES() {
 
 void OpenGLPipelineService::handleCameraBufferObject() {
     glBindBuffer(GL_UNIFORM_BUFFER, _phongProgram.finalViewMatrixBufferUboId);
-    glBufferData(GL_UNIFORM_BUFFER, sizeof(CameraBufferObject), &_cameraUboHandle, GL_STATIC_DRAW);
+    CameraBufferObject ubo{};
+    //should be 4, 4, 4
+    ubo.view = glm::lookAt(glm::vec3(4.0f, 4.0f, 4.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    ubo.proj = glm::perspective(glm::radians(90.0f), _width / (float)_height, 0.1f, 10.0f);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(CameraBufferObject), &ubo, GL_STATIC_DRAW);
 }
 
 void OpenGLPipelineService::handleLightPosData() {
     glBindBuffer(GL_UNIFORM_BUFFER, _phongProgram.lightPosDataUboId);
-    glBufferData(GL_UNIFORM_BUFFER, sizeof(glm::vec3), &_lightPosUboHandle, GL_STATIC_DRAW);
+    glm::vec3 lightPos(4.0f, 4.0f, 4.0f);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(glm::vec3), &lightPos, GL_STATIC_DRAW);
 }
 
 void OpenGLPipelineService::handleTransformDataBufferObject() {

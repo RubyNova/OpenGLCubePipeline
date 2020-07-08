@@ -1,7 +1,5 @@
 #version 300 es
 #extension GL_ARB_separate_shader_objects : enable
-#extension GL_ARB_shading_language_420pack : enable
-#extension GL_KHR_vulkan_glsl : enable
 precision mediump float;
 uniform CameraBufferObject {
     mat4 view;
@@ -23,11 +21,11 @@ layout(location = 2) out vec3 normal;
 layout(location = 3) out vec3 fragPos;
 
 void main() {
-    vec4 fragPos4 = transforms.transform[gl_InstanceIndex] * vec4(inPosition, 1.0);
+    vec4 fragPos4 = transforms.transform[gl_InstanceID] * vec4(inPosition, 1.0);
     gl_Position = ubo.proj * ubo.view * fragPos4;
 
     fragColour = inColour;
     fragTexCoord = inTexCoord;
-    normal = vec3(transforms.transform[gl_InstanceIndex] * vec4(inNormal, 0.0));
+    normal = vec3(transforms.transform[gl_InstanceID] * vec4(inNormal, 0.0));
     fragPos = vec3(fragPos4) / fragPos4.w;
 }

@@ -1,6 +1,8 @@
-#version 450
+#version 300 es
 #extension GL_ARB_separate_shader_objects : enable
-
+#extension GL_ARB_shading_language_420pack : enable
+#extension GL_KHR_vulkan_glsl : enable
+precision mediump float;
 layout(binding = 1) uniform sampler2D texSampler;
 layout(binding = 3) uniform lightPosData {
     vec3 lightPos;

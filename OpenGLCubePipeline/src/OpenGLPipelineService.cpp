@@ -120,24 +120,24 @@ GLuint OpenGLPipelineService::getLightPosDataUboHandle() {
         glBindBuffer(GL_UNIFORM_BUFFER, _lightPosUboHandle);
         glBufferData(GL_UNIFORM_BUFFER, sizeof(glm::vec3), nullptr, GL_STATIC_DRAW);
         glBindBuffer(GL_UNIFORM_BUFFER, 0);
-        glBindBufferRange(GL_UNIFORM_BUFFER, 0, _lightPosUboHandle, 0, sizeof(glm::vec3));
+        glBindBufferRange(GL_UNIFORM_BUFFER, 2, _lightPosUboHandle, 0, sizeof(glm::vec3));
         _lightPosUboGenerated = true;
     }
 
-    return _cameraUboHandle;
+    return _lightPosUboHandle;
 }
 
 GLuint OpenGLPipelineService::getTransformBufferDataUboHandle() {
     if (!_transformDataUboGenerated) {
         glGenBuffers(1, &_transformDataUboHandle);
         glBindBuffer(GL_UNIFORM_BUFFER, _transformDataUboHandle);
-        glBufferData(GL_UNIFORM_BUFFER, sizeof(glm::mat4) * 2, nullptr, GL_STATIC_DRAW);
+        glBufferData(GL_UNIFORM_BUFFER, sizeof(glm::mat4) * 1024, nullptr, GL_STATIC_DRAW);
         glBindBuffer(GL_UNIFORM_BUFFER, 0);
-        glBindBufferRange(GL_UNIFORM_BUFFER, 0, _transformDataUboHandle, 0, sizeof(glm::mat4) * 2);
+        glBindBufferRange(GL_UNIFORM_BUFFER, 1, _transformDataUboHandle, 0, sizeof(glm::mat4) * 1024);
         _transformDataUboGenerated = true;
     }
 
-    return _cameraUboHandle;
+    return _transformDataUboHandle;
 }
 
 ShaderProgram OpenGLPipelineService::loadShaders(const std::string& vertexFileName, const std::string& fragmentFileName) {
@@ -199,8 +199,8 @@ ShaderProgram OpenGLPipelineService::loadShaders(const std::string& vertexFileNa
 
     // Check Fragment Shader
     glGetShaderiv(fragmentShaderId, GL_COMPILE_STATUS, &Result);
-    if (Result != GL_TRUE) {
-        glGetShaderiv(fragmentShaderId, GL_INFO_LOG_LENGTH, &infoLogLength);
+    glGetShaderiv(fragmentShaderId, GL_INFO_LOG_LENGTH, &infoLogLength);
+    if (infoLogLength > 0) {
         std::vector<char> fragmentShaderErrorMessage(static_cast<size_t>(infoLogLength) + 1);
         glGetShaderInfoLog(fragmentShaderId, infoLogLength, nullptr, &fragmentShaderErrorMessage[0]);
         std::cout << std::string(&fragmentShaderErrorMessage[0]) << std::endl;
@@ -215,8 +215,8 @@ ShaderProgram OpenGLPipelineService::loadShaders(const std::string& vertexFileNa
 
     // Check the program
     glGetProgramiv(programId, GL_LINK_STATUS, &Result);
-    if (Result != GL_TRUE) {
-        glGetProgramiv(programId, GL_INFO_LOG_LENGTH, &infoLogLength);
+    glGetProgramiv(programId, GL_INFO_LOG_LENGTH, &infoLogLength);
+    if (infoLogLength > 0) {
         std::vector<char> ProgramErrorMessage(static_cast<size_t>(infoLogLength) + 1);
         glGetProgramInfoLog(programId, infoLogLength, nullptr, &ProgramErrorMessage[0]);
         std::cout << std::string(&ProgramErrorMessage[0]) << std::endl;
@@ -302,17 +302,20 @@ void OpenGLPipelineService::handleCameraBufferObject() {
     ubo.view = glm::lookAt(glm::vec3(4.0f, 4.0f, 4.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     ubo.proj = glm::perspective(glm::radians(90.0f), _width / (float)_height, 0.1f, 10.0f);
     glBufferData(GL_UNIFORM_BUFFER, sizeof(CameraBufferObject), &ubo, GL_STATIC_DRAW);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 void OpenGLPipelineService::handleLightPosData() {
     glBindBuffer(GL_UNIFORM_BUFFER, _phongProgram.lightPosDataUboId);
     glm::vec3 lightPos(4.0f, 4.0f, 4.0f);
     glBufferData(GL_UNIFORM_BUFFER, sizeof(glm::vec3), &lightPos, GL_STATIC_DRAW);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 void OpenGLPipelineService::handleTransformDataBufferObject() {
     glBindBuffer(GL_UNIFORM_BUFFER, _phongProgram.transformBufferDataUboId);
     glBufferData(GL_UNIFORM_BUFFER, sizeof(glm::mat4) * _transformData.size(), _transformData.data(), GL_STATIC_DRAW);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 void OpenGLPipelineService::handleTexture() {
@@ -328,10 +331,9 @@ void OpenGLPipelineService::handleVAODraw() {
         3,
         GL_FLOAT,
         GL_FALSE,
-        0,
-        nullptr
+        sizeof(Vertex),
+        (void*)offsetof(Vertex, pos)
         );
-
     glEnableVertexAttribArray(1);
     glBindBuffer(GL_ARRAY_BUFFER, _vboDataHandle);
     glVertexAttribPointer(
@@ -339,8 +341,8 @@ void OpenGLPipelineService::handleVAODraw() {
         3,
         GL_FLOAT,
         GL_FALSE,
-        sizeof(glm::vec3),
-        nullptr
+        sizeof(Vertex),
+        (void*)offsetof(Vertex, color)
         );
 
     glEnableVertexAttribArray(2);
@@ -350,19 +352,19 @@ void OpenGLPipelineService::handleVAODraw() {
         2,
         GL_FLOAT,
         GL_FALSE,
-        sizeof(glm::vec3) + sizeof(glm::vec3),
-        nullptr
+        sizeof(Vertex),
+        (void*)offsetof(Vertex, texCoord)
         );
 
     glEnableVertexAttribArray(3);
     glBindBuffer(GL_ARRAY_BUFFER, _vboDataHandle);
     glVertexAttribPointer(
-        2,
+        3,
         3,
         GL_FLOAT,
         GL_FALSE,
-        sizeof(glm::vec3) + sizeof(glm::vec3) + sizeof(glm::vec2),
-        nullptr
+        sizeof(Vertex),
+        (void*)offsetof(Vertex, normal)
         );
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _indicesHandle);
     glDrawElementsInstanced(GL_TRIANGLES, _indices.size(), GL_UNSIGNED_SHORT, 0, _transformData.size()); //infinite recursion followed by segfault occurs here. Stacktrace is useless.

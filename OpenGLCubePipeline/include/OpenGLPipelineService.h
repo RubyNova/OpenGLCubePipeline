@@ -16,6 +16,7 @@
 #include <filesystem>
 #include <cstdint>
 #include <memory>
+#include <stddef.h>
 
 #include <json/json.h>
 

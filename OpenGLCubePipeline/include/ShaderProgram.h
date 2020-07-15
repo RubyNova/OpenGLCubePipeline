@@ -7,7 +7,6 @@ struct ShaderProgram {
 public:
     GLuint shaderProgramId = 0;
     GLuint finalViewMatrixBufferUboId = 0;
-    GLuint transformBufferDataUboId = 0;
     GLuint lightPosDataUboId = 0;
 
 

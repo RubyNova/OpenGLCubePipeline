@@ -19,11 +19,35 @@ void OpenGLPipelineService::initVoxelData() {
 
     Json::Value array = root["vectorValues"];
 
-    _voxelInstanceCount = array.size();
-
-    for (size_t i = 0; i < _voxelInstanceCount; i++) {
+    //BUG: if you uncomment any of these, you'll see it fall over
+    for (size_t i = 0; i < array.size(); i++) {
         _transformData.emplace_back(glm::translate(glm::identity<glm::mat4>(), glm::vec3(array[static_cast<int>(i)][0].asFloat(), array[static_cast<int>(i)][1].asFloat(), array[static_cast<int>(i)][2].asFloat())));
+
+        //BUG: if this line is uncommented, it seems to align correctly? I'm guessing I screwed something up elsewhere.
+        _transformData.emplace_back(glm::translate(glm::identity<glm::mat4>(), glm::vec3(array[static_cast<int>(i)][0].asFloat() + 20, array[static_cast<int>(i)][1].asFloat(), array[static_cast<int>(i)][2].asFloat())));
+        _transformData.emplace_back(glm::translate(glm::identity<glm::mat4>(), glm::vec3(array[static_cast<int>(i)][0].asFloat() - 20, array[static_cast<int>(i)][1].asFloat(), array[static_cast<int>(i)][2].asFloat())));
+        _transformData.emplace_back(glm::translate(glm::identity<glm::mat4>(), glm::vec3(array[static_cast<int>(i)][0].asFloat(), array[static_cast<int>(i)][1].asFloat() - 20, array[static_cast<int>(i)][2].asFloat())));
+        _transformData.emplace_back(glm::translate(glm::identity<glm::mat4>(), glm::vec3(array[static_cast<int>(i)][0].asFloat(), array[static_cast<int>(i)][1].asFloat() + 20, array[static_cast<int>(i)][2].asFloat())));
+
+        _transformData.emplace_back(glm::translate(glm::identity<glm::mat4>(), glm::vec3(array[static_cast<int>(i)][0].asFloat() + 40, array[static_cast<int>(i)][1].asFloat(), array[static_cast<int>(i)][2].asFloat())));
+        _transformData.emplace_back(glm::translate(glm::identity<glm::mat4>(), glm::vec3(array[static_cast<int>(i)][0].asFloat() - 40, array[static_cast<int>(i)][1].asFloat(), array[static_cast<int>(i)][2].asFloat())));
+        _transformData.emplace_back(glm::translate(glm::identity<glm::mat4>(), glm::vec3(array[static_cast<int>(i)][0].asFloat(), array[static_cast<int>(i)][1].asFloat() - 40, array[static_cast<int>(i)][2].asFloat())));
+        _transformData.emplace_back(glm::translate(glm::identity<glm::mat4>(), glm::vec3(array[static_cast<int>(i)][0].asFloat(), array[static_cast<int>(i)][1].asFloat() + 40, array[static_cast<int>(i)][2].asFloat())));
+
+        _transformData.emplace_back(glm::translate(glm::identity<glm::mat4>(), glm::vec3(array[static_cast<int>(i)][0].asFloat() + 60, array[static_cast<int>(i)][1].asFloat(), array[static_cast<int>(i)][2].asFloat())));
+        _transformData.emplace_back(glm::translate(glm::identity<glm::mat4>(), glm::vec3(array[static_cast<int>(i)][0].asFloat() - 60, array[static_cast<int>(i)][1].asFloat(), array[static_cast<int>(i)][2].asFloat())));
+        _transformData.emplace_back(glm::translate(glm::identity<glm::mat4>(), glm::vec3(array[static_cast<int>(i)][0].asFloat(), array[static_cast<int>(i)][1].asFloat() - 60, array[static_cast<int>(i)][2].asFloat())));
+        _transformData.emplace_back(glm::translate(glm::identity<glm::mat4>(), glm::vec3(array[static_cast<int>(i)][0].asFloat(), array[static_cast<int>(i)][1].asFloat() + 60, array[static_cast<int>(i)][2].asFloat())));
+
+        _transformData.emplace_back(glm::translate(glm::identity<glm::mat4>(), glm::vec3(array[static_cast<int>(i)][0].asFloat() + 80, array[static_cast<int>(i)][1].asFloat(), array[static_cast<int>(i)][2].asFloat())));
+        _transformData.emplace_back(glm::translate(glm::identity<glm::mat4>(), glm::vec3(array[static_cast<int>(i)][0].asFloat() - 80, array[static_cast<int>(i)][1].asFloat(), array[static_cast<int>(i)][2].asFloat())));
+        _transformData.emplace_back(glm::translate(glm::identity<glm::mat4>(), glm::vec3(array[static_cast<int>(i)][0].asFloat(), array[static_cast<int>(i)][1].asFloat() - 80, array[static_cast<int>(i)][2].asFloat())));
+        _transformData.emplace_back(glm::translate(glm::identity<glm::mat4>(), glm::vec3(array[static_cast<int>(i)][0].asFloat(), array[static_cast<int>(i)][1].asFloat() + 80, array[static_cast<int>(i)][2].asFloat())));
     }
+
+    _voxelInstanceCount = _transformData.size();
+
+    std::cout << "Detected " << _voxelInstanceCount << " voxels. This will result in " << _voxelInstanceCount * _vertices.size() << " unique vertices, " << _voxelInstanceCount * _indices.size() << " indices, and " << _voxelInstanceCount * (_indices.size() / 3) << " faces in the world." << std::endl;
 }
 
 #if defined(_WIN64) || defined(_WIN32)
@@ -49,7 +73,7 @@ void OpenGLPipelineService::initWindow() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
     glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_EGL_CONTEXT_API);
 
-    auto window = glfwCreateWindow(_width, _height, "OpenGL Cube Window", nullptr, nullptr);
+    GLFWwindow* window = nullptr;//glfwCreateWindow(_width, _height, "OpenGL Cube Window", nullptr, nullptr);
 
     if (window == nullptr)
     {
@@ -59,7 +83,7 @@ void OpenGLPipelineService::initWindow() {
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
         glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_NATIVE_CONTEXT_API);
 
-        window = glfwCreateWindow(_width, _height, "OpenGL Cube Window", nullptr, nullptr);
+        window = nullptr; //glfwCreateWindow(_width, _height, "OpenGL Cube Window", nullptr, nullptr);
 
         if (window == nullptr)
         {
@@ -233,7 +257,7 @@ ShaderProgram OpenGLPipelineService::loadShaders(const std::string& vertexFileNa
     returnProg.shaderProgramId = programId;
     returnProg.finalViewMatrixBufferUboId = getCameraUboHandle();
     returnProg.lightPosDataUboId = getLightPosDataUboHandle();
-    returnProg.transformBufferDataUboId = getTransformBufferDataUboHandle();
+    //returnProg.transformBufferDataUboId = getTransformBufferDataUboHandle();
     bindCameraUboForProgram(programId);
     bindTransformDataUboForProgram(programId);
     bindLightPosDataUboForProgram(programId);
@@ -267,6 +291,7 @@ void OpenGLPipelineService::setUpCubeInstancing() {
     glGenVertexArrays(1, &_cubeVAO);
     glGenBuffers(1, &_vboDataHandle);
     glGenBuffers(1, &_indicesHandle);
+    glGenBuffers(1, &_instancesHandle);
     bufferVertexData();
 }
 
@@ -275,6 +300,8 @@ void OpenGLPipelineService::bufferVertexData() {
     glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * _vertices.size(), _vertices.data(), GL_STATIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _indicesHandle);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint16_t) * _indices.size(), _indices.data(), GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, _instancesHandle);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4) * _voxelInstanceCount, _transformData.data(), GL_STATIC_DRAW);
 }
 
 void OpenGLPipelineService::initOpenGLES() {
@@ -296,13 +323,22 @@ void OpenGLPipelineService::initOpenGLES() {
 }
 
 void OpenGLPipelineService::handleCameraBufferObject() {
+    static auto startTime = std::chrono::high_resolution_clock::now();
+    static auto previousTime = std::chrono::high_resolution_clock::now();
+    static std::chrono::duration<float, std::chrono::seconds::period> delta;
+    auto currentTime = std::chrono::high_resolution_clock::now();
+    delta = currentTime - previousTime;
+    float time = delta.count();
+
+
     glBindBuffer(GL_UNIFORM_BUFFER, _phongProgram.finalViewMatrixBufferUboId);
-    CameraBufferObject ubo{};
-    //should be 4, 4, 4
-    ubo.view = glm::lookAt(glm::vec3(4.0f, 4.0f, 4.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    ubo.proj = glm::perspective(glm::radians(90.0f), _width / (float)_height, 0.1f, 10.0f);
-    glBufferData(GL_UNIFORM_BUFFER, sizeof(CameraBufferObject), &ubo, GL_STATIC_DRAW);
+    //should be 12, 12, 20
+    _ubo.view = glm::rotate(_ubo.view, time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)); //glm::lookAt(glm::vec3(40.0f, 40.0f, 56.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    _ubo.proj = glm::perspective(glm::radians(90.0f), (float)_width / (float)_height, 0.1f, 65565.0f);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(CameraBufferObject), &_ubo, GL_STATIC_DRAW);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+    previousTime = std::chrono::high_resolution_clock::now();
 }
 
 void OpenGLPipelineService::handleLightPosData() {
@@ -313,7 +349,7 @@ void OpenGLPipelineService::handleLightPosData() {
 }
 
 void OpenGLPipelineService::handleTransformDataBufferObject() {
-    glBindBuffer(GL_UNIFORM_BUFFER, _phongProgram.transformBufferDataUboId);
+    //glBindBuffer(GL_UNIFORM_BUFFER, _phongProgram.transformBufferDataUboId);
     glBufferData(GL_UNIFORM_BUFFER, sizeof(glm::mat4) * _transformData.size(), _transformData.data(), GL_STATIC_DRAW);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
@@ -366,8 +402,57 @@ void OpenGLPipelineService::handleVAODraw() {
         sizeof(Vertex),
         (void*)offsetof(Vertex, normal)
         );
+    glBindBuffer(GL_ARRAY_BUFFER, _instancesHandle);
+    glEnableVertexAttribArray(4);
+    glVertexAttribPointer(
+        4,
+        4,
+        GL_FLOAT,
+        GL_FALSE,
+        sizeof(glm::mat4),
+        (void*)0
+        );
+    glEnableVertexAttribArray(5);
+    glVertexAttribPointer(
+        5,
+        4,
+        GL_FLOAT,
+        GL_FALSE,
+        sizeof(glm::mat4),
+        (void*)sizeof(glm::vec4)
+        );
+
+    glEnableVertexAttribArray(6);
+    glVertexAttribPointer(
+        6,
+        4,
+        GL_FLOAT,
+        GL_FALSE,
+        sizeof(glm::mat4),
+        (void*)(sizeof(glm::vec4) * 2)
+        );
+    glEnableVertexAttribArray(7);
+    glVertexAttribPointer(
+        7,
+        4,
+        GL_FLOAT,
+        GL_FALSE,
+        sizeof(glm::mat4),
+        (void*)(sizeof(glm::vec4) * 3)
+        );
+
+    glVertexAttribDivisor(4, 1);
+    glVertexAttribDivisor(5, 1);
+    glVertexAttribDivisor(6, 1);
+    glVertexAttribDivisor(7, 1);
+
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _indicesHandle);
     glDrawElementsInstanced(GL_TRIANGLES, _indices.size(), GL_UNSIGNED_SHORT, 0, _transformData.size()); //infinite recursion followed by segfault occurs here. Stacktrace is useless.
+    
+    glDisableVertexAttribArray(7);
+    glDisableVertexAttribArray(6);
+    glDisableVertexAttribArray(5);
+    glDisableVertexAttribArray(4);
     glDisableVertexAttribArray(3);
     glDisableVertexAttribArray(2);
     glDisableVertexAttribArray(1);
@@ -382,7 +467,7 @@ void OpenGLPipelineService::drawFrame() {
     glUseProgram(_phongProgram.shaderProgramId);
 
     handleCameraBufferObject();
-    handleTransformDataBufferObject();
+    //handleTransformDataBufferObject();
     handleLightPosData();
     bufferVertexData();
     handleTexture();

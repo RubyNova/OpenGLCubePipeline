@@ -7,6 +7,9 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/vec4.hpp>
+#include <glm/mat4x4.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 //#include <learnopengl/shader_m.h>
 //#include <learnopengl/camera.h>
@@ -32,9 +35,12 @@
 
 class OpenGLPipelineService {
 private:
-	std::unique_ptr<GLFWwindow, decltype(&glfwDestroyWindow)> _window;
 	const uint32_t _width = 3120 / 2; //TODO: Fix this for my actual screen
 	const uint32_t _height = 1440 / 2;
+	CameraBufferObject _ubo{ glm::lookAt(glm::vec3(40.0f, 40.0f, 56.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)), glm::perspective(glm::radians(90.0f), (float)_width / (float)_height, 0.1f, 65565.0f) };
+
+	std::unique_ptr<GLFWwindow, decltype(&glfwDestroyWindow)> _window;
+
 
 	bool _cameraUboGenerated = false;
 	bool _lightPosUboGenerated = false;
@@ -43,6 +49,7 @@ private:
 	GLuint _lightPosUboHandle = 0;
 	GLuint _transformDataUboHandle = 0;
 	GLuint _indicesHandle = 0;
+	GLuint _instancesHandle = 0;
 
 	GLuint _textureHandle = 0;
 	GLuint _instanceVBO = 0;
